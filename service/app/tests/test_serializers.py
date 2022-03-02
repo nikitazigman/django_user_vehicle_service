@@ -1,4 +1,4 @@
-from app.serializers import VehicleSerializer
+# from app.serializers import VehicleSerializer
 from django.test import TestCase
 
 

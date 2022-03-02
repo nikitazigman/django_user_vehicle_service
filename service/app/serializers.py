@@ -1,16 +1,23 @@
 from django.core.validators import RegexValidator
-from django.db.models import QuerySet
 from rest_framework import serializers, validators
 
-from .logic.vehicle_model_verification import ModelVerification, ModelVerificationInt
+from .logic.vehicle_model_verification import (
+    ModelVerification,
+    ModelVerificationInt,
+)
 from .models import Vehicle
 
 
 class VehicleSerializer(serializers.ModelSerializer):
-    _verificationClass = ModelVerification
+    _verification_class = ModelVerification
 
     def _create_vehicle_model_dict(
-        model: str, body: str, year: int, props: list, actions: list
+        self,
+        model: str,
+        body: str,
+        year: int,
+        props: list,
+        actions: list,
     ) -> dict:
         return {
             "model": model,
@@ -48,7 +55,7 @@ class VehicleSerializer(serializers.ModelSerializer):
         )
 
     def validate(self, data):
-        vehicle_model = dict()
+        vehicle_model = {}
 
         if self.instance:  # we are updating model in db
             vehicle_model = self._update_vehicle_model(data)
@@ -56,7 +63,9 @@ class VehicleSerializer(serializers.ModelSerializer):
         else:  # we are creating model in db
             vehicle_model = self._create_vehicle_model(data)
 
-        model_verificator: ModelVerificationInt = self._verificationClass(vehicle_model)
+        model_verificator: ModelVerificationInt = (
+            self._verification_class(vehicle_model)
+        )
         ver_status, ver_resp = model_verificator.verify()
 
         if not ver_status:
@@ -81,7 +90,9 @@ class VehicleSerializer(serializers.ModelSerializer):
                 message="VIN includes only capital alphanumeric symbols > 17",
                 code="invalid_plate_number",
             ),
-            validators.UniqueValidator(queryset=Vehicle.objects.all()),
+            validators.UniqueValidator(
+                queryset=Vehicle.objects.all()
+            ),
         ]
     )
 

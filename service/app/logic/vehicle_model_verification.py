@@ -28,5 +28,7 @@ class ModelVerificationInt(ABC):
 
 class ModelVerification(ModelVerificationInt):
     def verify(self) -> tuple:
-        # ToDo: use async request via msg broker to vehicle-model and vehicle-properties service to verify the model properties
+        # ToDo: use async request via msg broker to
+        # ToDo: vehicle-model and vehicle-properties
+        # ToDo: service to verify the model properties
         return (False, {"value": "verification fail"})
