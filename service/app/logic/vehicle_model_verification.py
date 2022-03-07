@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from typing import Optional
 
 from pydantic import BaseModel
 
@@ -15,7 +16,7 @@ class VehicleModelType(BaseModel):
 
 class ModelVerificationInt(ABC):
     def __init__(self) -> None:
-        self._vehicle_model = None
+        self._vehicle_model: Optional[VehicleModelType] = None
 
     @property
     def vehicle_model(self):

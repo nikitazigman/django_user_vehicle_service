@@ -27,12 +27,19 @@ class VehicleSerializer(serializers.ModelSerializer):
         }
 
     def _update_vehicle_model(self, data: dict) -> dict:
+        if not isinstance(self.instance, Vehicle):
+            raise TypeError(
+                "instance is not an instance of Vehicle object"
+            )
+
+        user_vehicle: Vehicle = self.instance
+
         vehicle_model = self._create_vehicle_model_dict(
-            model=self.instance.model,
-            body=self.instance.body,
-            year=self.instance.date.year,
-            props=self.instance.allowed_properties,
-            actions=self.instance.allowed_actions,
+            model=user_vehicle.model,
+            body=user_vehicle.body,
+            year=user_vehicle.date.year,
+            props=user_vehicle.allowed_properties,
+            actions=user_vehicle.allowed_actions,
         )
 
         if "year" in data:
