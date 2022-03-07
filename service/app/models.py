@@ -9,6 +9,7 @@ class Vehicle(models.Model):
     allowed_properties = models.JSONField()
 
     model = models.CharField(max_length=50)
+    manufacture = models.CharField(max_length=50)
     body = models.CharField(max_length=50)
     color = models.CharField(max_length=7)
     plate_number = models.CharField(max_length=20)

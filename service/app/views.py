@@ -1,19 +1,15 @@
 # from rest_framework import viewsets
-from rest_framework import generics
+from rest_framework import generics, permissions
 
 from .models import Vehicle
+from .permissions import IsUserData
 from .serializers import VehicleSerializer
-
-# class UserVehicleViewSet(viewsets.ModelViewSet):
-#     serializer_class = VehicleSerializer
-#     queryset = Vehicle
 
 
 class VehicleDetailedView(generics.RetrieveUpdateDestroyAPIView):
     queryset = Vehicle.objects.all()
     serializer_class = VehicleSerializer
-    # filterset_class = UserFilter
-    # permission_classes = [IsClient | permissions.IsAuthenticated]
+    permission_classes = [IsUserData, permissions.IsAuthenticated]
 
 
 class VehicleCreateView(generics.CreateAPIView):
@@ -21,10 +17,14 @@ class VehicleCreateView(generics.CreateAPIView):
     serializer_class = VehicleSerializer
 
     def perform_create(self, serializer):
-        serializer.save(user_id=self.request.user)
+        serializer.save(user_id=self.request.user.id)
 
 
 class VehiclesListView(generics.ListAPIView):
-    queryset = Vehicle.objects.all()
     serializer_class = VehicleSerializer
-    # filterset_class = UserFilter
+
+    def get_queryset(self):
+        self.queryset = Vehicle.objects.filter(
+            user_id=self.request.user.id
+        )
+        return super().get_queryset()

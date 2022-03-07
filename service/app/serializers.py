@@ -1,15 +1,14 @@
 from django.core.validators import RegexValidator
 from rest_framework import serializers, validators
 
-from .logic.vehicle_model_verification import (
-    ModelVerification,
-    ModelVerificationInt,
-)
+from .logic.vehicle_model_verification import ModelVerification
 from .models import Vehicle
 
 
+# ToDo: add regex validator for the color field
+# ToDo: forbide an updating the id field
 class VehicleSerializer(serializers.ModelSerializer):
-    _verification_class = ModelVerification
+    _verification_class = ModelVerification()
 
     def _create_vehicle_model_dict(
         self,
@@ -22,7 +21,7 @@ class VehicleSerializer(serializers.ModelSerializer):
         return {
             "model": model,
             "body": body,
-            "date": year,
+            "year": year,
             "allowed_properties": props,
             "allowed_actions": actions,
         }
@@ -49,7 +48,7 @@ class VehicleSerializer(serializers.ModelSerializer):
         return self._create_vehicle_model_dict(
             model=data["model"],
             body=data["body"],
-            year=data["year"],
+            year=data["date"].year,
             props=data["allowed_properties"],
             actions=data["allowed_actions"],
         )
@@ -63,10 +62,9 @@ class VehicleSerializer(serializers.ModelSerializer):
         else:  # we are creating model in db
             vehicle_model = self._create_vehicle_model(data)
 
-        model_verificator: ModelVerificationInt = (
-            self._verification_class(vehicle_model)
-        )
-        ver_status, ver_resp = model_verificator.verify()
+        self._verification_class.vehicle_model = vehicle_model
+
+        ver_status, ver_resp = self._verification_class.verify()
 
         if not ver_status:
             raise serializers.ValidationError(ver_resp)
@@ -86,7 +84,7 @@ class VehicleSerializer(serializers.ModelSerializer):
     vin = serializers.CharField(
         validators=[
             RegexValidator(
-                regex=r"^[A-Z0-9]{17,}$",
+                regex=r"^[A-Z0-9]{17}$",
                 message="VIN includes only capital alphanumeric symbols > 17",
                 code="invalid_plate_number",
             ),
@@ -96,11 +94,22 @@ class VehicleSerializer(serializers.ModelSerializer):
         ]
     )
 
+    color = serializers.CharField(
+        validators=[
+            RegexValidator(
+                regex=r"\B(\#+[A-Z0-9]{6})$",
+                message="Color should starts with '#' and after have only 6 capital letters or numbers",
+                code="invalid_plate_number",
+            )
+        ]
+    )
+
     class Meta:
         model = Vehicle
         fields = [
             "id",
             "model",
+            "manufacture",
             "body",
             "date",
             "color",
@@ -109,32 +118,4 @@ class VehicleSerializer(serializers.ModelSerializer):
             "allowed_actions",
             "allowed_properties",
         ]
-
-
-# class VehiclePropertyModelSerializer(serializers.ModelSerializer):
-#     manufacture: serializers.SlugRelatedField = serializers.SlugRelatedField(
-#         read_only=True, many=False, slug_field="name"
-#     )
-
-#     class Meta:
-#         model = VehicleModel
-#         fields = ["id", "name", "manufacture"]
-
-
-# class NeighborVehicleSerializer(serializers.ModelSerializer):
-#     model = VehiclePropertyModelSerializer()
-#     body = VehicleBodySerializer()
-
-#     class Meta:
-#         model = Vehicle
-#         fields = [
-#             # "id",
-#             "model",
-#             "body",
-#             "year",
-#             "color",
-#             "plate_number",
-#             "vin",
-#             "allowed_actions",
-#             "allowed_properties",
-#         ]
+        read_only_fields = ["id"]
