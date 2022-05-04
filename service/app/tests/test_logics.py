@@ -12,6 +12,7 @@ class VehicleModelVerificationTest(TestCase):
             "model": "model",
             "body": "body",
             "year": 123,
+            "manufacture": "manufacture",
             "allowed_actions": [1, 2, 3, 4],
             "allowed_properties": [1, 2, 3, 4],
         }
@@ -28,6 +29,7 @@ class VehicleModelVerificationTest(TestCase):
             "Model": "model",
             "body": "body",
             "year": 123,
+            "manufacture": "manufacture",
             "allowed_actions": [1, 2, 3, 4],
             "allowed_properties": [1, 2, 3, 4],
         }
@@ -40,6 +42,7 @@ class VehicleModelVerificationTest(TestCase):
             "model": "model",
             "body": 123,
             "year": "asd",
+            "manufacture": "manufacture",
             "allowed_actions": [1, 2, 3, 4],
             "allowed_properties": [1, 2, 3, 4],
         }

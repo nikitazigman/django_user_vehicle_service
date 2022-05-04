@@ -174,7 +174,9 @@ class ViewTest(TestCase):
         user = self.users[0]
         # mock the verification function in the serializer class
         verification_model = MockModelVerification()
-        verification_model.set_verify_resp(True, {"v": "t"})
+        verification_model.set_verify_resp(
+            True, {"verification": True}
+        )
         VehicleSerializer._verification_class = verification_model
 
         serializer = VehicleSerializer(
@@ -225,14 +227,15 @@ class ViewTest(TestCase):
             Vehicle.objects.filter(id=user_vehicle.id).exists()
         )
 
-    # ToDo: figure out how to use mock function to mock verification logic
     def test_user_can_update_vehicle(self):
         user = self.users[0]
         user_vehicle = Vehicle.objects.filter(user_id=user.id).first()
 
         # mock the verification function in the serializer class
         verification_model = MockModelVerification()
-        verification_model.set_verify_resp(True, {"v": "t"})
+        verification_model.set_verify_resp(
+            True, {"verification": True}
+        )
         VehicleSerializer._verification_class = verification_model
 
         new_color = {"color": "#CCAA22"}
