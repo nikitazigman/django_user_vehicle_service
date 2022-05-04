@@ -14,6 +14,7 @@ import os
 from pathlib import Path, PurePath
 
 from dotenv import load_dotenv
+from kombu import Exchange, Queue
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -35,7 +36,6 @@ env_path = (
     else BASE_DIR.joinpath("conf/env/.prod-env")
 )
 
-print(f"{env_path=}")
 if not load_dotenv(BASE_DIR.parent.joinpath(env_path)):
     raise FileNotFoundError("cannot load env file")
 
@@ -231,3 +231,25 @@ INTERNAL_IPS = [
 ]
 
 SITE_ID = 1
+
+# RabbitMQ settings
+RABBITMQ_USER = os.environ.get("RABBITMQ_DEFAULT_USER")
+RABBITMQ_PASSWORD = os.environ.get("RABBITMQ_DEFAULT_PASS")
+RABBITMQ_HOST = os.environ.get("RABBITMQ_HOST")
+RABBITMQ_PORT = os.environ.get("RABBITMQ_PORT")
+
+# Celery settings
+CELERY_BROKER_URL = f"amqp://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}"
+CELERY_RESULT_BACKEND = f"rpc://{RABBITMQ_USER}:{RABBITMQ_PASSWORD}@{RABBITMQ_HOST}:{RABBITMQ_PORT}"
+CELERY_TASK_QUEUES = (
+    Queue(
+        "vehicle_model_service_default",
+        Exchange("vehicle_model_service_default", type="direct"),
+        routing_key="default",
+    ),
+    Queue(
+        "vehicle_model_service_urgent",
+        Exchange("vehicle_model_service_urgent", type="direct"),
+        routing_key="print_queue_key",
+    ),
+)

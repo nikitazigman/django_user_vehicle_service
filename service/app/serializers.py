@@ -1,7 +1,10 @@
 from django.core.validators import RegexValidator
 from rest_framework import serializers, validators
 
-from .logic.vehicle_model_verification import ModelVerification
+from .logic.vehicle_model_verification import (
+    ModelVerification,
+    VerificationResponse,
+)
 from .models import Vehicle
 
 
@@ -15,6 +18,7 @@ class VehicleSerializer(serializers.ModelSerializer):
         model: str,
         body: str,
         year: int,
+        manufacture: str,
         props: list,
         actions: list,
     ) -> dict:
@@ -22,6 +26,7 @@ class VehicleSerializer(serializers.ModelSerializer):
             "model": model,
             "body": body,
             "year": year,
+            "manufacture": manufacture,
             "allowed_properties": props,
             "allowed_actions": actions,
         }
@@ -38,6 +43,7 @@ class VehicleSerializer(serializers.ModelSerializer):
             model=user_vehicle.model,
             body=user_vehicle.body,
             year=user_vehicle.date.year,
+            manufacture=user_vehicle.manufacture,
             props=user_vehicle.allowed_properties,
             actions=user_vehicle.allowed_actions,
         )
@@ -56,25 +62,33 @@ class VehicleSerializer(serializers.ModelSerializer):
             model=data["model"],
             body=data["body"],
             year=data["date"].year,
+            manufacture=data["manufacture"],
             props=data["allowed_properties"],
             actions=data["allowed_actions"],
         )
 
-    def validate(self, data):
-        vehicle_model = {}
-
+    def _get_vehicle_model(self, data: dict) -> dict:
         if self.instance:  # we are updating model in db
-            vehicle_model = self._update_vehicle_model(data)
-
+            return self._update_vehicle_model(data)
         else:  # we are creating model in db
-            vehicle_model = self._create_vehicle_model(data)
+            return self._create_vehicle_model(data)
 
+    def _verify_vehicle_model(
+        self, vehicle_model: dict
+    ) -> VerificationResponse:
         self._verification_class.vehicle_model = vehicle_model
+        return self._verification_class.verify()
 
-        ver_status, ver_resp = self._verification_class.verify()
+    def validate(self, data):
+        vehicle_model = self._get_vehicle_model(data)
+        verification: VerificationResponse = (
+            self._verify_vehicle_model(vehicle_model)
+        )
 
-        if not ver_status:
-            raise serializers.ValidationError(ver_resp)
+        if not verification.get_status():
+            raise serializers.ValidationError(
+                verification.get_error_msg()
+            )
 
         return super(VehicleSerializer, self).validate(data)
 
